@@ -1,8 +1,10 @@
 const express = require('express');
 //const cors = require('cors');
 const mysql = require('mysql');
-
+const cors = require('cors');
 const app = express();
+
+const bodyParser = require('body-parser');
 
 const db = mysql.createPool({
     host: 'localhost',
@@ -13,26 +15,34 @@ const db = mysql.createPool({
 
 
 //console.log(db);
-//app.use(cors());
+app.use(cors());
+app.use(express.json())
+app.use(bodyParser.urlencoded({extended: true}))
 
+app.get("/api/del", (req,res)=>{
+    const sqlDel = 'DELETE FROM movie_reviews';
+    db.query(sqlDel, (err, result) =>{
+        res.send(result);
+    })
+})
 
-app.get('/', (req, res) => {
+app.get('/api/get', (req, res)=>{
+    const sqlSelect = "SELECT * FROM movie_reviews";
+    db.query(sqlSelect, (err, result)=>{
+        res.send(result);
+    })
+})
 
-    const sqlInsert = "INSERT INTO movie_reviews (movieTitle, movieReview) VALUES ('inception', 'good movie');"
-    db.query(sqlInsert, (err, result) =>{
-        if (err) {
-            return res.send(err);
-        }
-        else{
-            console.log("IT FINALLY WORKED");
-            return res.json({
-                data: result
-            })
-        }
-    });
-    
-});
+app.post("/api/insert", (req, res)=> {
 
+    const movieName = req.body.movieName
+    const movieReview = req.body.movieReview
+
+    const sqlInsert = 'INSERT INTO movie_reviews (movieTitle, movieReview) VALUES (?,?)'
+    db.query(sqlInsert, [movieName, movieReview], (err, result)=>{
+        console.log(result);
+    })
+})
 app.listen(3001, () => {
     console.log("running on port 3001");
 });
